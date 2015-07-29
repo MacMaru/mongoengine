@@ -1,5 +1,5 @@
-from __future__ import print_function
-from __future__ import unicode_literals
+
+
 
 import logging
 import collections
@@ -23,7 +23,7 @@ class PermissionError( ApplicationException ):
         instance = frame.f_locals[ self_argument ]
         class_name = instance.__class__.__name__
 
-        if not isinstance( attribute_name,  basestring ) and isinstance( attribute_name, collections.Iterable ):
+        if not isinstance( attribute_name,  str ) and isinstance( attribute_name, collections.Iterable ):
             if len( attribute_name ) == 1:
                 attribute_name = list( attribute_name )[ 0 ]
             else:

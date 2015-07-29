@@ -1,0 +1,191 @@
+--- ./conf.py	(original)
++++ ./conf.py	(refactored)
+@@ -40,8 +40,8 @@
+ master_doc = 'index'
+ 
+ # General information about the project.
+-project = u'mongoengine-privileges'
+-copyright = u'2012, Progressive Company'
++project = 'mongoengine-privileges'
++copyright = '2012, Progressive Company'
+ 
+ # The version info for the project you're documenting, acts as replacement for
+ # |version| and |release|, also used in various other places throughout the
+@@ -183,8 +183,8 @@
+ # Grouping the document tree into LaTeX files. List of tuples
+ # (source start file, target name, title, author, documentclass [howto/manual]).
+ latex_documents = [
+-  ('index', 'mongoengine-privileges.tex', u'mongoengine-privileges Documentation',
+-   u'Progressive Company', 'manual'),
++  ('index', 'mongoengine-privileges.tex', 'mongoengine-privileges Documentation',
++   'Progressive Company', 'manual'),
+ ]
+ 
+ # The name of an image file (relative to this directory) to place at the top of
+@@ -213,8 +213,8 @@
+ # One entry per manual page. List of tuples
+ # (source start file, name, description, authors, manual section).
+ man_pages = [
+-    ('index', 'mongoengine-privileges', u'mongoengine-privileges Documentation',
+-     [u'Progressive Company'], 1)
++    ('index', 'mongoengine-privileges', 'mongoengine-privileges Documentation',
++     ['Progressive Company'], 1)
+ ]
+ 
+ # If true, show URL addresses after external links.
+@@ -227,8 +227,8 @@
+ # (source start file, target name, title, author,
+ #  dir menu entry, description, category)
+ texinfo_documents = [
+-  ('index', 'mongoengine-privileges', u'mongoengine-privileges Documentation',
+-   u'Progressive Company', 'mongoengine-privileges', 'One line description of project.',
++  ('index', 'mongoengine-privileges', 'mongoengine-privileges Documentation',
++   'Progressive Company', 'mongoengine-privileges', 'One line description of project.',
+    'Miscellaneous'),
+ ]
+ 
+--- ./mongoengine_privileges/exceptions.py	(original)
++++ ./mongoengine_privileges/exceptions.py	(refactored)
+@@ -1,5 +1,5 @@
+-from __future__ import print_function
+-from __future__ import unicode_literals
++
++
+ 
+ import logging
+ import collections
+@@ -23,7 +23,7 @@
+         instance = frame.f_locals[ self_argument ]
+         class_name = instance.__class__.__name__
+ 
+-        if not isinstance( attribute_name,  basestring ) and isinstance( attribute_name, collections.Iterable ):
++        if not isinstance( attribute_name,  str ) and isinstance( attribute_name, collections.Iterable ):
+             if len( attribute_name ) == 1:
+                 attribute_name = list( attribute_name )[ 0 ]
+             else:
+--- ./mongoengine_privileges/privilege.py	(original)
++++ ./mongoengine_privileges/privilege.py	(refactored)
+@@ -1,5 +1,5 @@
+-from __future__ import print_function
+-from __future__ import unicode_literals
++
++
+ 
+ from mongoengine import *
+ import mongoengine_privileges
+@@ -22,7 +22,7 @@
+         @type permissions: string or list or tuple
+         @return:
+         """
+-        if isinstance( permissions, basestring ):
++        if isinstance( permissions, str ):
+             permissions = [ permissions ]
+ 
+         self.permissions = permissions
+@@ -35,7 +35,7 @@
+         @type permissions: string or list or tuple
+         @return:
+         """
+-        if isinstance( permissions, basestring ):
++        if isinstance( permissions, str ):
+             permissions = [ permissions ]
+ 
+         self.permissions = list( set( self.permissions ).union( permissions ) )
+@@ -48,11 +48,11 @@
+         @type permissions: string or list or tuple
+         @return:
+         """
+-        if isinstance( permissions, basestring ):
++        if isinstance( permissions, str ):
+             permissions = [ permissions ]
+ 
+         self.permissions = list( set( self.permissions ).difference( permissions ) )
+ 
+     def __unicode__( self ):
+-        return unicode( 'user={}, group={}: {}'.format( self.user, self.group, self.permissions ) )
++        return str( 'user={}, group={}: {}'.format( self.user, self.group, self.permissions ) )
+ 
+--- ./mongoengine_privileges/privilegemixin.py	(original)
++++ ./mongoengine_privileges/privilegemixin.py	(refactored)
+@@ -1,5 +1,5 @@
+-from __future__ import print_function
+-from __future__ import unicode_literals
++
++
+ 
+ import inspect
+ 
+@@ -14,6 +14,7 @@
+ from .privilege import Privilege
+ 
+ import mongoengine_privileges
++import collections
+ 
+ 
+ class PrivilegeMixin( RelationManagerMixin ):
+@@ -193,7 +194,7 @@
+ 
+         method = getattr( self, 'may_{}'.format( permission ), None )
+ 
+-        if callable( method ):
++        if isinstance( method, collections.Callable):
+             result = method( request )
+         else:
+             result = has_permission( permission, self, request )
+@@ -323,7 +324,7 @@
+ 
+         if not privilege and create:
+             user = principal.pk if isinstance( principal, Document ) else None
+-            group = principal if isinstance( principal, basestring ) else None
++            group = principal if isinstance( principal, str ) else None
+ 
+             if not user and not group:
+                 raise AttributeError( 'Either a user or group is needed to create a `Privilege`' )
+--- ./tests_mongoengine_privileges/run_tests.py	(original)
++++ ./tests_mongoengine_privileges/run_tests.py	(refactored)
+@@ -1,5 +1,5 @@
+-from __future__ import print_function
+-from __future__ import unicode_literals
++
++
+ 
+ import unittest
+ 
+--- ./tests_mongoengine_privileges/utils.py	(original)
++++ ./tests_mongoengine_privileges/utils.py	(refactored)
+@@ -1,5 +1,5 @@
+-from __future__ import print_function
+-from __future__ import unicode_literals
++
++
+ 
+ 
+ def monkeypatch_method(cls):
+@@ -39,7 +39,7 @@
+ def get_object_id():
+     global last_id
+     last_id += 1
+-    return ObjectId( unicode( last_id ).zfill( 24 ) )
++    return ObjectId( str( last_id ).zfill( 24 ) )
+ 
+ 
+ class FauxSave( object ):
+@@ -70,7 +70,7 @@
+         name = self.__class__.__name__
+ 
+         if hasattr( self, 'name' ):
+-            name += ':' + unicode( self.name )
++            name += ':' + str( self.name )
+ 
+         return '{} ({}@{})'.format( name, self.pk, id( self ) )
+ 
+--- ./tests_mongoengine_privileges/basic/test_privileges.py	(original)
++++ ./tests_mongoengine_privileges/basic/test_privileges.py	(refactored)
+@@ -1,5 +1,5 @@
+-from __future__ import print_function
+-from __future__ import unicode_literals
++
++
+ 
+ import unittest
+ 
